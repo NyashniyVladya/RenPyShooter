@@ -1,6 +1,7 @@
 
 init -10 python in _shooter:
 
+    import store
     import random
     import math
     import collections

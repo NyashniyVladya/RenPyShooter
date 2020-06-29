@@ -37,24 +37,29 @@ python early in _shooter_statements:
         @classmethod
         def execute_shooter_statement(cls, arg_dict):
 
+            _raw_args = arg_dict.copy()
             arg_dict = cls._evaluate_args(arg_dict)
 
             success_action = arg_dict.pop("success_action", None)
             failed_action = arg_dict.pop("failed_action", None)
             _hide_after_action = arg_dict.pop("_hide_after_action", True)
+            for _del_raw in (
+                "success_action",
+                "failed_action",
+                "_hide_after_action"
+            ):
+                _raw_args.pop(_del_raw, None)
             _battlefield = cls.get_battlefield_object_from_arg_dict(arg_dict)
+            _battlefield._raw_args = _raw_args
 
+            roll_fw = renpy.roll_forward_info()
             renpy.show(
                 _battlefield.GLOBAL_NAME,
                 layer="master",
                 what=_battlefield
             )
             _battlefield._start()
-            try:
-                result = ui.interact(suppress_window=True)
-            except Exception as ex:
-                renpy.checkpoint(ex)
-                raise ex
+            result = ui.interact(suppress_window=True, roll_forward=roll_fw)
             _battlefield._pause()
             renpy.checkpoint(result)
 

@@ -164,7 +164,7 @@ init -3 python in _shooter:
             )
             render_object = renpy.Render(rend.width, rend.height)
             render_object.blit(rend, (0, 0))
-            if self._at_gunpoint:
+            if self._action and self._at_gunpoint:
                 render_object.add_focus(
                     self,
                     None,

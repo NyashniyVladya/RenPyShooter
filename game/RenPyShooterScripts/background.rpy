@@ -5,6 +5,7 @@ init -4 python in _shooter:
 
         __author__ = "Vladya"
         GLOBAL_NAME = "_RenPyShooterDisp"
+        _raw_args = None  # Нераспакованные аргументы поля боя.
 
         def __init__(self, background, player_gun_class=None, *enemies):
             """
@@ -12,6 +13,7 @@ init -4 python in _shooter:
                 Класс оружия main чара.
             :other doc: '_WideScreenBattleField'
             """
+            self._init_args = ((background, player_gun_class) + enemies)
             super(BattleField, self).__init__(mouse="current_crosshair")
 
             self._player_pov = PlayerPOV(player_gun_class)
@@ -22,7 +24,20 @@ init -4 python in _shooter:
             self._pause()
 
         def __getstate__(self):
-            raise Exception(__("Сохранение во время боя невозможно."))
+            return (self._raw_args or {})
+
+        def __setstate__(self, raw_args):
+            """
+            Поддержка сохранений в момент когда объект на экране и бой не идёт.
+            При загрузке отобразится изначальное состояние "поля боя".
+            """
+            if not raw_args:
+                raise Exception(__("Объект был инициализирован некорректно."))
+            _parser = store._shooter_statements.ShooterStatementParser
+            _args = _parser._evaluate_args(raw_args)
+            new_bf = _parser.get_battlefield_object_from_arg_dict(_args)
+            self.__init__(*new_bf._init_args)
+            self._raw_args = raw_args.copy()
 
         def _start(self):
             self._action = True
