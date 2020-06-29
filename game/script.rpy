@@ -4,7 +4,7 @@ label start:
     shooter:
         background "panorama.jpg"  # Фон. <Обязательно>
         player_gun _shooter.Revolver # Класс оружия игрока. <Опционально. Если нет - рукопашка.>
-        player_gun_AUTOMATIC True  # Доп параметры оружия игрока. <Опционально>
+        player_gun_AUTOMATIC False  # Доп параметры оружия игрока. <Опционально>
         player_ARMOR_COEFFICIENT .8  # Доп параметры самого игрока. <Опционально>
         _hide_after_action False  # Скрыть поле боя автоматически. <Опционально. Умолчание - True.>
         success_action NullAction()  # Экшены на победу и поражение. <Опционально>

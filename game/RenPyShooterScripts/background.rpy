@@ -49,8 +49,12 @@ init -4 python in _shooter:
 
         def _update_players_status(self):
             self._player_pov._action = self._action
+            if not self._action:
+                self._player_pov.gun.release_the_trigger()
             for en in self._battlefield._child._enemies:
                 en["enemy"]._action = self._action
+                if not self._action:
+                    en["enemy"].gun.release_the_trigger()
 
         def visit(self):
             return [self._player_pov, self._battlefield]

@@ -649,6 +649,7 @@ init -4 python in _shooter:
         _fire_picture = "RenPyShooterPictures/mg_p2000_shoot.png"
         _fire_sound = "RenpyShooterAudio/bullet_impact.wav"
         _no_bullet_sound = "RenpyShooterAudio/no_bullet.wav"
+        _reload_sound = "RenpyShooterAudio/reload.wav"
 
     class AK47(Gun):
 
@@ -668,3 +669,4 @@ init -4 python in _shooter:
         )
         _fire_sound = "RenpyShooterAudio/shoot_ak47.wav"
         _no_bullet_sound = "RenpyShooterAudio/no_bullet.wav"
+        _reload_sound = "RenpyShooterAudio/reload.wav"
