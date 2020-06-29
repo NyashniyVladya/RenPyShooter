@@ -128,8 +128,8 @@ dmypy.json
 # RenPy files
 *.rpyc
 *.rpymc
-game/cache/
-game/saves/
+game/cache/*
+game/saves/*
 log.txt
 errors.txt
 traceback.txt
