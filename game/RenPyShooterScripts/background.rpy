@@ -51,7 +51,9 @@ init -4 python in _shooter:
             self._player_pov._action = self._action
             if not self._action:
                 self._player_pov.gun.release_the_trigger()
-            for en in self._battlefield._child._enemies:
+            _enemies = self._battlefield._child._enemies
+            _enemies += tuple(self._battlefield._child._enemies_pool)
+            for en in _enemies:
                 en["enemy"]._action = self._action
                 if not self._action:
                     en["enemy"].gun.release_the_trigger()
@@ -91,9 +93,10 @@ init -4 python in _shooter:
                         # Имеется минимум один живой враг.
                         break
                 else:
-                    # Врагов не осталось.
-                    self._pause()
-                    renpy.end_interaction(True)
+                    if not self._battlefield._child._enemies_pool:
+                        # Врагов не осталось.
+                        self._pause()
+                        renpy.end_interaction(True)
 
             battlefield_rend = renpy.render(self._battlefield, *rend_args)
             render_object = renpy.Render(
@@ -120,6 +123,7 @@ init -4 python in _shooter:
         """
 
         __author__ = "Vladya"
+        MAX_ENEMY_ON_SCREEN = 25
 
         def __init__(self, background, *enemies):
 
@@ -132,17 +136,25 @@ init -4 python in _shooter:
 
             super(_WideScreenBattleField, self).__init__()
             self._background = _displayable(background)
-            self._enemies = tuple(
+
+            _start_pos_vars = (
+                {"xanchor": 1.5, "xpos": .0, "yalign": 1.},
+                {"xanchor": (-.5), "xpos": 1., "yalign": 1.}
+            )
+            self._enemies_pool = list(
                 map(
                     lambda enemy: {
                         "enemy": enemy,
-                        "xalign": random.random(),
-                        "yalign": 1.,
+                        "pos_transform": TimeTransform(
+                            **random.choice(_start_pos_vars)
+                        ),
                         "pos": None
                     },
                     enemies
                 )
             )
+            random.shuffle(self._enemies_pool)
+            self._enemies = ()
 
         def visit(self):
             result = [self._background]
@@ -162,6 +174,8 @@ init -4 python in _shooter:
 
         def render(self, *rend_args):
 
+            width, height, st, at = rend_args
+
             # Сначала отрисовываем фонец.
             back_rend = renpy.render(self._background, *rend_args)
             w, h = map(absolute, back_rend.get_size())
@@ -169,8 +183,25 @@ init -4 python in _shooter:
             render_object.blit(back_rend, (0, 0))
 
             # Потом врагов.
+
+            # Заполняем массив новыми врагами.
+            while len(self._enemies) < self.MAX_ENEMY_ON_SCREEN:
+                if not self._enemies_pool:
+                    # Исходная выборка израсходована. Заполнять нечем.
+                    break
+                new_enemy = self._enemies_pool.pop(0)
+                xalign = random.random()
+                new_enemy["pos_transform"]._st = st
+                new_enemy["pos_transform"].change_values_over_time(
+                    random.uniform(.3, .5),
+                    xanchor=xalign,
+                    xpos=xalign,
+                    warper=lambda a: (a ** (1. / 3.))
+                )
+                self._enemies += (new_enemy,)
+
             # Если кто-то успел подбежать ближе - рисуем его перед дальним.
-            # А так же удаляем выбывших, чтобы не занимали память.
+            # А так же удаляем выбывших.
             self._enemies = tuple(
                 sorted(
                     filter(
@@ -180,14 +211,39 @@ init -4 python in _shooter:
                     key=lambda en: en["enemy"]._attack_zoom
                 )
             )
+
             for enemy_info in self._enemies:
+
                 if enemy_info["enemy"]._can_hide:
                     continue
+
+                if not enemy_info["enemy"].is_alive():
+                    if not enemy_info["pos_transform"]._is_changing():
+                        _xpos = enemy_info["pos_transform"].state.xpos
+                        _xpos += random.uniform((-.1), .1)
+                        enemy_info["pos_transform"].change_values_over_time(
+                            random.uniform(.1, .3),
+                            yanchor=(-.5),
+                            ypos=1.,
+                            xpos=_xpos,
+                            callback=renpy.partial(
+                                setattr,
+                                enemy_info["enemy"],
+                                "_can_hide",
+                                True
+                            )
+                        )
+
+                renpy.render(enemy_info["pos_transform"], *rend_args)
                 enemy_rend = renpy.render(enemy_info["enemy"], *rend_args)
                 _w, _h = map(absolute, enemy_rend.get_size())
-                xpos = (w * enemy_info["xalign"]) - (_w * enemy_info["xalign"])
-                ypos = (h * enemy_info["yalign"]) - (_h * enemy_info["yalign"])
-                enemy_info["pos"] = tuple(map(int, (xpos, ypos)))
+
+                xanchor, yanchor = enemy_info["pos_transform"].state.anchor
+                xpos, ypos = enemy_info["pos_transform"].state.pos
+
+                x = ((w * xpos) - (_w * xanchor))
+                y = ((h * ypos) - (_h * yanchor))
+                enemy_info["pos"] = tuple(map(int, (x, y)))
                 render_object.blit(enemy_rend, enemy_info["pos"])
 
             renpy.redraw(self, .0)

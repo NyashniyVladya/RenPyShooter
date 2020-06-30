@@ -55,10 +55,7 @@ init -3 python in _shooter:
             self._start_acttack_time = None
 
             self._attack_zoom = 1.  # Зум при атаке.
-            self._last_zoom_time = .0
-
-            self._dead_animation = TimeTransform(xalign=.5, yalign=1.)
-            self._rend_offset = None
+            self._last_zoom_time = None
 
             self._at_gunpoint = None
 
@@ -91,11 +88,6 @@ init -3 python in _shooter:
 
             if not (self.sprite_width and self.sprite_height):
                 return
-
-            if self._rend_offset:
-                xoff, yoff = self._rend_offset
-                x -= xoff
-                y -= yoff
 
             if self._attack_zoom <= .0:
                 x = y = float("+inf")
@@ -156,6 +148,9 @@ init -3 python in _shooter:
 
             if self._can_hide:
                 return renpy.Render(1, 1)
+
+            if self._last_zoom_time is None:
+                self._last_zoom_time = st
 
             rend = renpy.render(self._sprite, width, height, st, at)
             self.sprite_width, self.sprite_height = map(
@@ -259,31 +254,6 @@ init -3 python in _shooter:
             )
             render_object.zoom(self._attack_zoom, self._attack_zoom)
 
-            if (not self._can_hide) and (not self.is_alive()):
-                # Враг убит. Анимация смерти.
-                if not self._dead_animation._is_changing():
-                    self._dead_animation.change_values_over_time(
-                        random.uniform(.1, .5),
-                        xanchor=random.uniform((-.1), 1.1),
-                        yanchor=(-1.5),
-                        callback=renpy.partial(
-                            setattr,
-                            self,
-                            "_can_hide",
-                            True
-                        )
-                    )
-
-                w, h = map(absolute, render_object.get_size())
-                _new_render = renpy.Render(w, h)
-                xpos, ypos = self._dead_animation.state.pos
-                xanchor, yanchor = self._dead_animation.state.anchor
-                x = (w * xpos) - (w * xanchor)
-                y = (h * ypos) - (h * yanchor)
-                self._rend_offset = (x, y)
-                _new_render.blit(render_object, (x, y))
-                render_object = _new_render
-            renpy.render(self._dead_animation, width, height, st, at)
             renpy.redraw(self, .0)
             return render_object
 

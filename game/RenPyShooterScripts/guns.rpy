@@ -553,7 +553,7 @@ init -4 python in _shooter:
             elif self._current_state == self.RELOAD_STATE1:
                 # Заряжаем и возвращаемся за следующим.
                 if self._current_bullet:
-                    if self._reload_success_percent >= random.random():
+                    if self._reload_success_percent > random.random():
                         # Пуля заряжена успешно.
                         self._play_reload_sound()
                         self._bullets.append(self._current_bullet)

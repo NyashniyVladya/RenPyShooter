@@ -164,7 +164,8 @@ init -4 python in _shooter:
             render_object = renpy.Render(width, height)
             if not self.is_alive():
                 render_object.fill((0xff, 0x00, 0x00, 0xff))
-                self._can_hide = True
+                if not self._can_hide:
+                    self._can_hide = True
                 return render_object
 
             # Отрисовка оружия.

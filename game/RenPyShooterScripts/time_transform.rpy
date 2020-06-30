@@ -47,6 +47,13 @@ init -8 python in _shooter:
             Изменяет значения на переданные в течении 'delay' секунд.
             """
 
+            if self._is_changing():
+                # Изменения идут в данный момент.
+                if callable(self._callback):
+                    self._callback()
+
+            self._stop_changes()
+
             warper = _new_values.pop("warper", "linear")
             if not callable(warper):
                 warper = renpy.atl.warpers[warper]
