@@ -13,6 +13,7 @@ python early in _shooter_statements:
                 "background",
                 "player_gun",
                 "_hide_after_action",
+                "_max_enemy_on_screen",
                 "success_action",
                 "failed_action"
             ),
@@ -43,14 +44,19 @@ python early in _shooter_statements:
             success_action = arg_dict.pop("success_action", None)
             failed_action = arg_dict.pop("failed_action", None)
             _hide_after_action = arg_dict.pop("_hide_after_action", True)
+            _max_enemy_on_screen = arg_dict.pop("_max_enemy_on_screen", None)
             for _del_raw in (
                 "success_action",
                 "failed_action",
-                "_hide_after_action"
+                "_hide_after_action",
+                "_max_enemy_on_screen"
             ):
                 _raw_args.pop(_del_raw, None)
             _battlefield = cls.get_battlefield_object_from_arg_dict(arg_dict)
             _battlefield._raw_args = _raw_args
+            if isinstance(_max_enemy_on_screen, (int, float)):
+                _m = _max_enemy_on_screen
+                _battlefield._battlefield._child.MAX_ENEMY_ON_SCREEN = _m
 
             roll_fw = renpy.roll_forward_info()
             renpy.show(
