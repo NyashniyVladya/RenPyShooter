@@ -62,7 +62,7 @@ init -10 python in _shooter:
             self.size = (width, height)
 
         def load(self):
-            return renpy.display.pgrender.surface(self.self.size, True)
+            return renpy.display.pgrender.surface(self.size, True)
 
 
 init 100 python in _renpyshootercursorsetting:
