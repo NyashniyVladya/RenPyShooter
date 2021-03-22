@@ -133,3 +133,4 @@ game/saves/*
 log.txt
 errors.txt
 traceback.txt
+.android.json

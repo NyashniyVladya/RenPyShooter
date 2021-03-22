@@ -124,6 +124,7 @@ init -4 python in _shooter:
 
         __author__ = "Vladya"
         MAX_ENEMY_ON_SCREEN = 25
+        ENEMIES_POS = "random"
 
         def __init__(self, background, *enemies):
 
@@ -155,6 +156,7 @@ init -4 python in _shooter:
             )
             random.shuffle(self._enemies_pool)
             self._enemies = ()
+            self._enemies_align = None
 
         def visit(self):
             result = [self._background]
@@ -184,6 +186,22 @@ init -4 python in _shooter:
 
             # Потом врагов.
 
+            if self._enemies_align is None:
+                self._enemies_align = {}
+                if self.ENEMIES_POS == "line_up":
+                    _slots = min(
+                        self.MAX_ENEMY_ON_SCREEN,
+                        (len(self._enemies_pool) + len(self._enemies))
+                    )
+                    for a in xrange(_slots):
+                        _key = (float(a) + 1.) / (float(_slots) + 1.)
+                        self._enemies_align[_key] = []
+                elif self.ENEMIES_POS == "random":
+                    pass
+                else:
+                    for a in self.ENEMIES_POS:
+                        self._enemies_align[a] = []
+
             # Заполняем массив новыми врагами.
             while len(self._enemies) < self.MAX_ENEMY_ON_SCREEN:
                 if not self._enemies_pool:
@@ -191,6 +209,14 @@ init -4 python in _shooter:
                     break
                 new_enemy = self._enemies_pool.pop(0)
                 xalign = random.random()
+                if self._enemies_align:
+                    _key = min(
+                        self._enemies_align.iterkeys(),
+                        key=lambda x: len(self._enemies_align[x])
+                    )
+                    xalign = _key
+                    self._enemies_align[_key].append(new_enemy["enemy"])
+
                 new_enemy["pos_transform"]._st = st
                 new_enemy["pos_transform"].change_values_over_time(
                     random.uniform(.3, .5),
@@ -218,6 +244,9 @@ init -4 python in _shooter:
                     continue
 
                 if not enemy_info["enemy"].is_alive():
+                    for k, v in self._enemies_align.copy().iteritems():
+                        if enemy_info["enemy"] in v:
+                            v.remove(enemy_info["enemy"])
                     if not enemy_info["pos_transform"]._is_changing():
                         _xpos = enemy_info["pos_transform"].state.xpos
                         _xpos += random.uniform((-.1), .1)

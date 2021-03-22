@@ -1,6 +1,7 @@
 
 python early in _shooter_statements:
 
+    import __builtin__
     import store
 
     class ShooterStatementParser(object):
@@ -14,6 +15,7 @@ python early in _shooter_statements:
                 "player_gun",
                 "_hide_after_action",
                 "_max_enemy_on_screen",
+                "_enemies_pos",
                 "success_action",
                 "failed_action"
             ),
@@ -45,18 +47,37 @@ python early in _shooter_statements:
             failed_action = arg_dict.pop("failed_action", None)
             _hide_after_action = arg_dict.pop("_hide_after_action", True)
             _max_enemy_on_screen = arg_dict.pop("_max_enemy_on_screen", None)
+            _enemies_pos = arg_dict.pop("_enemies_pos", "random")
             for _del_raw in (
                 "success_action",
                 "failed_action",
                 "_hide_after_action",
-                "_max_enemy_on_screen"
+                "_max_enemy_on_screen",
+                "_enemies_pos"
             ):
                 _raw_args.pop(_del_raw, None)
             _battlefield = cls.get_battlefield_object_from_arg_dict(arg_dict)
             _battlefield._raw_args = _raw_args
+
+            _battlefield_displayable = _battlefield._battlefield._child
             if isinstance(_max_enemy_on_screen, (int, float)):
                 _m = _max_enemy_on_screen
-                _battlefield._battlefield._child.MAX_ENEMY_ON_SCREEN = _m
+                _battlefield_displayable.MAX_ENEMY_ON_SCREEN = _m
+
+            b = __builtin__
+            _arrays = (b.list, b.set, b.frozenset, b.tuple)
+            if isinstance(_enemies_pos, basestring):
+                if _enemies_pos not in ("random", "line_up"):
+                    raise RuntimeError(
+                        __("Некорректный параметр '_enemies_pos'.")
+                    )
+            elif isinstance(_enemies_pos, _arrays):
+                for p in _enemies_pos:
+                    if not isinstance(p, float):
+                        raise RuntimeError(__("Передано не 'float' значение."))
+            else:
+                raise RuntimeError(__("Некорректный параметр '_enemies_pos'."))
+            _battlefield_displayable.ENEMIES_POS = _enemies_pos
 
             roll_fw = renpy.roll_forward_info()
             renpy.show(
@@ -155,7 +176,7 @@ python early in _shooter_statements:
                     v = list(map(cls._evaluate_args, v))
                 else:
                     raise TypeError(
-                        __("Некорректный тип '{0}'.").format(type(v))
+                        __("Некорректный тип '{0}' ({1}).").format(type(v), k)
                     )
                 result[k] = v
             return result

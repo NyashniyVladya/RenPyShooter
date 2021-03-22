@@ -18,7 +18,7 @@ init -4 python in _shooter:
             if gun_class is not None:
                 if not hasattr(gun_class, "__mro__"):
                     raise ValueError(__("Передан не класс."))
-                if Gun not in gun_class.__mro__:
+                if not issubclass(gun_class, Gun):
                     raise TypeError(__("Неверный тип класса оружия."))
                 self.gun = gun_class(shooter=self)
             else:
